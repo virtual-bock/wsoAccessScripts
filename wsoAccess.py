@@ -4,17 +4,23 @@ import base64
 import requests
 import json
 
-def getBearer(wsoAccessTenant,wsoAccessAccount,wsoAccessSSecret):
+#Get Bearer-Token for API-calls
+def getBearer(wsoAccessTenant:str,wsoAccessAccount:str,wsoAccessSSecret:str):
     #Build basic auth-header
     wsoBuild = ( wsoAccessAccount + ':'+ wsoAccessSSecret ).encode ('ascii')
     wsoAccessBasic = 'Basic ' + str(base64.b64encode ( wsoBuild ).decode ('ascii'))
-    #Build auth-url
+    #Build url
     wsoAccessAuthUrl = 'https://' + wsoAccessTenant + '/SAAS/auth/oauthtoken?grant_type=client_credentials'
     wsoAccesspayload = {}
+    #Build header
     authHeaders = {
       'Authorization': wsoAccessBasic,
       }
+    '''
     #integrate simple logging (todo)
+
+
+    '''
     authResponse = requests.request("POST", wsoAccessAuthUrl, headers=authHeaders, data=wsoAccesspayload)
     print (authResponse.request.headers)
     print (authResponse.status_code)
@@ -31,20 +37,22 @@ def getBearer(wsoAccessTenant,wsoAccessAccount,wsoAccessSSecret):
 
 
 
-def getDirectory(wsoAccessTenant,wsoAccessToken,):
-    
+def getDirectory(wsoAccessTenant:str,wsoAccessToken:str):
+    #Build url
     wsoAccessDictUrl = 'https://' + wsoAccessTenant + '/SAAS/jersey/manager/api/connectormanagement/directoryconfigs'
-    
     wsoAccessDirectoryPayload={}
- 
+    #Build Bearer-Token
     wsoAccessBearer = 'Bearer '+ wsoAccessToken
-    print (wsoAccessBearer)
- 
+    #Build header
     wsoAccessBearerHeader={
       'Authorization': wsoAccessBearer,
     }
-    
     directoryResponse = requests.request("GET", wsoAccessDictUrl, headers=wsoAccessBearerHeader, data=wsoAccessDirectoryPayload)
+    '''
+    #integrate simple logging (todo)
+
+    
+    '''
     if directoryResponse.status_code !=200:
         print('Error: looks like you need a new bearer. HTTP error '+ str(directoryResponse.status_code))
     else:
@@ -54,19 +62,19 @@ def getDirectory(wsoAccessTenant,wsoAccessToken,):
 
 
 
-def syncDirectory(wsoAccessTenant,wsoAccessToken,wsoAccessDirectory):
+def syncDirectory(wsoAccessTenant:str,wsoAccessToken:str,wsoAccessDirectory:str):
     wsoAccessSyncUrl = 'https://' + wsoAccessTenant + '/SAAS/jersey/manager/api/connectormanagement/directoryconfigurations/'+ wsoAccessDirectory +'/sync/v2'
+    #create a request-body
     wsoAccessSyncPayload = json.dumps({
         "ignoreSafeguards":"false"
     })
     wsoAccessBearer = 'Bearer '+ wsoAccessToken
-    print (wsoAccessBearer)
+    #Build header 
     wsoAccessSyncHeader = {
     'Authorization': wsoAccessBearer,
     'Accept':'application/vnd.vmware.horizon.manager.connector.management.directory.sync.trigger.v2+json',
     'Content-Type':'application/vnd.vmware.horizon.manager.connector.management.directory.sync.trigger.v2+json',
     }
-    
     syncResponse = requests.request("POST", wsoAccessSyncUrl, headers=wsoAccessSyncHeader, data=wsoAccessSyncPayload)
     print (syncResponse.status_code)
     if syncResponse.status_code != 200:
