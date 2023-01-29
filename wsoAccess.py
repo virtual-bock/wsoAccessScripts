@@ -27,10 +27,10 @@ def getBearer(wsoAccessTenant:str,wsoAccessAccount:str,wsoAccessSSecret:str):
     #convert response to dictonary
     wsoAuthResponse = eval(authResponse.text)
     if authResponse.status_code != 200:
-        print ( time.ctime + ' Something went wrong. HTTP Statuscode was ' + str(authResponse.status_code))
+        print ( time.ctime() + ' Something went wrong. HTTP Statuscode was ' + str(authResponse.status_code))
         #integrate a simple logging (todo)
     else:
-        print ( time.ctime +' Token recived!')
+        print ( time.ctime() +' Token recived!')
     return (wsoAuthResponse['access_token'])
 
 
@@ -54,7 +54,7 @@ def getDirectory(wsoAccessTenant:str,wsoAccessToken:str):
     
     '''
     if directoryResponse.status_code !=200:
-        print( time.ctime + ' Error: looks like you need a new bearer. HTTP error '+ str(directoryResponse.status_code))
+        print( time.ctime() + ' Error: looks like you need a new bearer. HTTP error '+ str(directoryResponse.status_code))
     else:
         print(directoryResponse.text)
     return(directoryResponse.text)
@@ -77,12 +77,12 @@ def syncDirectory(wsoAccessTenant:str,wsoAccessToken:str,wsoAccessDirectory:str)
         'Content-Type':'application/vnd.vmware.horizon.manager.connector.management.directory.sync.trigger.v2+json',
     }
     syncResponse = requests.request("POST", wsoAccessSyncUrl, headers=wsoAccessSyncHeader, data=wsoAccessSyncPayload)
-    print ( time.ctime + ' ' + str(syncResponse.status_code))
+    print ( time.ctime() + ' ' + str(syncResponse.status_code))
     if syncResponse.status_code != 200:
-        print ( time.ctime + ' Something went wrong. HTTP Statuscode was ' + str(syncResponse.status_code))
+        print ( time.ctime() + ' Something went wrong. HTTP Statuscode was ' + str(syncResponse.status_code))
         #integrate a simple logging (todo)
     else:
-        print ( time.ctime + ' Sync Successful!')
+        print ( time.ctime() + ' Sync Successful!')
     return(syncResponse.status_code)
 
 
