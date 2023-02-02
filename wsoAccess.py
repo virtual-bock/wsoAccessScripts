@@ -3,9 +3,12 @@ import time
 import base64
 import requests
 import json
+import datetime
 
 #Get Bearer-Token for API-calls
 def getBearer(wsoAccessTenant:str,wsoAccessAccount:str,wsoAccessSSecret:str):
+    #Create Log file
+    wsoLogfile = open (r'wsoAccess_'+ datetime.datetime.now().strftime("%m_%d_%Y") +'.log','a')
     #Build basic auth-header
     wsoBuild = ( wsoAccessAccount + ':'+ wsoAccessSSecret ).encode ('ascii')
     wsoAccessBasic = 'Basic ' + str(base64.b64encode ( wsoBuild ).decode ('ascii'))
@@ -16,21 +19,16 @@ def getBearer(wsoAccessTenant:str,wsoAccessAccount:str,wsoAccessSSecret:str):
     authHeaders = {
       'Authorization': wsoAccessBasic,
       }
-    '''
-    #integrate simple logging (todo)
-
-
-    '''
     authResponse = requests.request("POST", wsoAccessAuthUrl, headers=authHeaders, data=wsoAccesspayload)
     #print (authResponse.request.headers)
     #print (authResponse.status_code)
     #convert response to dictonary
-    wsoAuthResponse = eval(authResponse.text)
+    wsoAuthResponse = eval( authResponse.text )
     if authResponse.status_code != 200:
-        print ( time.ctime() + ' Something went wrong. HTTP Statuscode was ' + str(authResponse.status_code))
-        #integrate a simple logging (todo)
+        wsoLogfile.write ( time.ctime() + ' Something went wrong. HTTP Statuscode was ' + str(authResponse.status_code) +'\n')
     else:
-        print ( time.ctime() +' Token recived!')
+        wsoLogfile.write ( time.ctime() +' Token recived!\n')
+    wsoLogfile.close ()
     return (wsoAuthResponse['access_token'])
 
 
@@ -38,6 +36,7 @@ def getBearer(wsoAccessTenant:str,wsoAccessAccount:str,wsoAccessSSecret:str):
 
 #Get connected directorys 
 def getDirectory(wsoAccessTenant:str,wsoAccessToken:str):
+    wsoLogfile = open (r'wsoAccess_'+ datetime.datetime.now().strftime("%m_%d_%Y") +'.log','a')
     #Build url
     wsoAccessDictUrl = 'https://' + wsoAccessTenant + '/SAAS/jersey/manager/api/connectormanagement/directoryconfigs'
     wsoAccessDirectoryPayload = {}
@@ -48,22 +47,19 @@ def getDirectory(wsoAccessTenant:str,wsoAccessToken:str):
       'Authorization': wsoAccessBearer,
     }
     directoryResponse = requests.request("GET", wsoAccessDictUrl, headers=wsoAccessBearerHeader, data=wsoAccessDirectoryPayload)
-    '''
-    #integrate simple logging (todo)
-
-    
-    '''
     if directoryResponse.status_code !=200:
-        print( time.ctime() + ' Error: looks like you need a new bearer. HTTP error '+ str(directoryResponse.status_code))
+        wsoLogfile.write ( time.ctime() + ' Error: looks like you need a new bearer. HTTP error ' + str(directoryResponse.status_code) + '\n')
     else:
-        print(directoryResponse.text)
-    return(directoryResponse.text)
+        wsoLogfile.write (directoryResponse.text)
+    wsoLogfile.close()
+    return (directoryResponse.text)
 
 
 
 
 #Sync specific directory
 def syncDirectory(wsoAccessTenant:str,wsoAccessToken:str,wsoAccessDirectory:str):
+    wsoLogfile = open (r'wsoAccess_'+ datetime.datetime.now().strftime("%m_%d_%Y") +'.log','a')
     wsoAccessSyncUrl = 'https://' + wsoAccessTenant + '/SAAS/jersey/manager/api/connectormanagement/directoryconfigurations/'+ wsoAccessDirectory +'/sync/v2'
     #create a request-body
     wsoAccessSyncPayload = json.dumps({
@@ -77,22 +73,22 @@ def syncDirectory(wsoAccessTenant:str,wsoAccessToken:str,wsoAccessDirectory:str)
         'Content-Type':'application/vnd.vmware.horizon.manager.connector.management.directory.sync.trigger.v2+json',
     }
     syncResponse = requests.request("POST", wsoAccessSyncUrl, headers=wsoAccessSyncHeader, data=wsoAccessSyncPayload)
-    print ( time.ctime() + ' ' + str(syncResponse.status_code))
+    #print ( time.ctime() + ' ' + str(syncResponse.status_code))
     if syncResponse.status_code != 200:
-        print ( time.ctime() + ' Something went wrong. HTTP Statuscode was ' + str(syncResponse.status_code))
-        #integrate a simple logging (todo)
+        wsoLogfile.write ( time.ctime() + ' Something went wrong. HTTP Statuscode was ' + str(syncResponse.status_code) + '\n')
     else:
-        print ( time.ctime() + ' Sync Successful!')
-    return(syncResponse.status_code)
+        wsoLogfile.write ( time.ctime() + ' Sync Successful!\n')
+    wsoLogfile.close ()
+    return (syncResponse.status_code)
 
 
 
 
 #Warning: DELETE UEM connection data
 def deleteWSOUEM_Config(wsoAccessTenant:str,wsoAccessToken:str):
+    wsoLogfile = open (r'wsoAccess_'+ datetime.datetime.now().strftime("%m_%d_%Y") +'.log','a')
     wsoAccessRemoveUEMUrl = 'https://' + wsoAccessTenant + '/SAAS/jersey/manager/api/tenants/tenant/airwatchoptin/config'
     wsoAccessRemoveUEMPayload = {}
-
     wsoAccessBearer = 'Bearer '+ wsoAccessToken
     wsoAccessRemoveHeader = {
         'Authorization': wsoAccessBearer,
@@ -101,5 +97,8 @@ def deleteWSOUEM_Config(wsoAccessTenant:str,wsoAccessToken:str):
     uemQuestion =sys.stdin ('Are you really sure to do this?(type yes in uppercase)')
     if uemQuestion == 'YES':
         removeResponse = requests.request("DELETE",wsoAccessRemoveUEMUrl, headers=wsoAccessRemoveHeader, data=wsoAccessRemoveUEMPayload)
+        wsoLogfile.write ( time.ctime() + 'Configuration Removed! Statuscode ' + str(removeResponse.status_code) + '\n')
     else:
         print ("Nice that you don't want to delete the configuration.")
+        wsoLogfile.write ( time.ctime() + ' Configuration not removed!\n')
+    wsoLogfile.close ()
